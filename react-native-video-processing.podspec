@@ -13,7 +13,8 @@ Pod::Spec.new do |s|
   s.source_files     = 'ios/**/*.{h,m}'
   s.exclude_files    = 'ios/**/{examples,Mac}/**/*.{h,m}'
   s.requires_arc     = true
-  s.platforms        = { :ios => "8.0"}
+  s.platforms        = { :ios => "9.0"}
   s.frameworks       = 'CoreMedia', 'CoreVideo', 'OpenGLES', 'AVFoundation', 'QuartzCore', 'MobileCoreServices'
   s.dependency       'React'
+  s.dependency       'GPUImage'
 end
