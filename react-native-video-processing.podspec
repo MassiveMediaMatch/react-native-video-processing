@@ -11,8 +11,9 @@ Pod::Spec.new do |s|
   s.authors          = 'Shahen Hovhannisyan'
   s.source           = { :git => 'https://github.com/MassiveMediaMatch/react-native-video-processing.git', :tag => s.version }
   s.source_files     = 'ios/**/*.{h,m}'
-  s.requires_arc = true
+  s.exclude_files    = 'ios/**/{examples,Mac}/**/*.{h,m}'
+  s.requires_arc     = true
   s.platforms        = { :ios => "8.0"}
-  s.dependency         'React'
-  s.frameworks = 'CoreMedia', 'CoreVideo', 'OpenGLES', 'AVFoundation', 'QuartzCore', 'GPUImage', 'MobileCoreServices'
+  s.dependency       = 'React'
+  s.frameworks       = 'CoreMedia', 'CoreVideo', 'OpenGLES', 'AVFoundation', 'QuartzCore', 'GPUImage', 'MobileCoreServices'
 end
