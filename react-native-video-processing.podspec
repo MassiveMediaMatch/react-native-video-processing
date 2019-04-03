@@ -14,4 +14,5 @@ Pod::Spec.new do |s|
   s.requires_arc = true
   s.platforms        = { :ios => "8.0"}
   s.dependency         'React'
+  s.frameworks = 'CoreMedia', 'CoreVideo', 'OpenGLES', 'AVFoundation', 'QuartzCore', 'GPUImage', 'MobileCoreServices'
 end
