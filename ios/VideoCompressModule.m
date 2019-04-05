@@ -44,7 +44,7 @@ RCT_EXPORT_METHOD(compress:(NSString *)url options:(NSDictionary*)options callba
 	NSString *filePath = [self documentsPathForFileName:fileName];
 	
 	// fetch asset
-	NSURL *inputURL = [NSURL URLWithString:url];
+	NSURL *inputURL = [NSURL fileURLWithPath:url];
 	AVURLAsset *asset = [AVURLAsset URLAssetWithURL:inputURL options:nil];
 	
 	// get video track
