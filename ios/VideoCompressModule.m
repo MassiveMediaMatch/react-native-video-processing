@@ -55,7 +55,7 @@ RCT_EXPORT_METHOD(compress:(NSString *)url options:(NSDictionary*)options resolv
 		NSNumber *width = options[@"width"] ? @([options[@"width"] intValue]) : @480;
 		NSNumber *height = options[@"height"] ? @([options[@"height"] intValue]) : @848;
 		NSNumber *minimumBitrate = options[@"minimumBitrate"] ? @([options[@"minimumBitrate"] intValue]) : @300000;
-		NSNumber *bitrateMultiplier = options[@"bitrateMultiplier"] ? @([options[@"bitrateMultiplier"] intValue]) : @300000;
+		NSNumber *bitrateMultiplier = options[@"bitrateMultiplier"] ? @([options[@"bitrateMultiplier"] intValue]) : @3;
 		BOOL removeAudio = options[@"removeAudio"] ? [options[@"minimumBitrate"] boolValue] : NO;
 		
 		// calculate average bitrate
