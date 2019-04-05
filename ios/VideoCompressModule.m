@@ -104,10 +104,6 @@ RCT_EXPORT_METHOD(compress:(NSString *)url options:(NSDictionary*)options resolv
 			}
 		}
 	}];
-	
-	if(resolve) {
-		resolve(@(YES));
-	}
 }
 
 RCT_EXPORT_METHOD(getAssetInfo:(NSString *)url resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
