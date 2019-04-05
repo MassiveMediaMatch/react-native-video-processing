@@ -56,7 +56,7 @@ RCT_EXPORT_METHOD(compress:(NSString *)url options:(NSDictionary*)options callba
 		NSNumber *height = options[@"height"] ? @([options[@"height"] intValue]) : @848;
 		NSNumber *minimumBitrate = options[@"minimumBitrate"] ? @([options[@"minimumBitrate"] intValue]) : @300000;
 		NSNumber *bitrateMultiplier = options[@"bitrateMultiplier"] ? @([options[@"bitrateMultiplier"] intValue]) : @3;
-		BOOL removeAudio = options[@"removeAudio"] ? [options[@"minimumBitrate"] boolValue] : NO;
+		BOOL removeAudio = options[@"removeAudio"] ? [options[@"removeAudio"] boolValue] : NO;
 		
 		// calculate average bitrate
 		CGFloat bps = videoTrack.estimatedDataRate;
@@ -86,7 +86,9 @@ RCT_EXPORT_METHOD(compress:(NSString *)url options:(NSDictionary*)options callba
 			},
 		};
 		
-		if (!removeAudio) {
+		if (removeAudio) {
+			encoder.audioSettings = @{};
+		} else {
 			encoder.audioSettings = @
 			{
 			AVFormatIDKey: @(kAudioFormatMPEG4AAC),
