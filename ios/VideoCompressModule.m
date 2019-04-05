@@ -42,68 +42,91 @@ RCT_EXPORT_METHOD(compress:(NSString *)url options:(NSDictionary*)options resolv
 	// create temporary directory to store file
 	NSString *fileName = [NSString stringWithFormat:@"%@-compressed-video.mp4", [self randomStringWithLength:20]];
 	NSString *filePath = [self documentsPathForFileName:fileName];
-
+	
 	// fetch asset
 	NSURL *inputURL = [NSURL URLWithString:url];
-	AVURLAsset *urlAsset = [AVURLAsset URLAssetWithURL:inputURL options:nil];
+	AVURLAsset *asset = [AVURLAsset URLAssetWithURL:inputURL options:nil];
 	
-	// parse options
-	NSNumber *width = options[@"width"] ? @([options[@"width"] intValue]) : @480;
-	NSNumber *height = options[@"height"] ? @([options[@"height"] intValue]) : @848;
-	NSNumber *minimumBitrate = options[@"minimumBitrate"] ? @([options[@"minimumBitrate"] intValue]) : @300000;
-	BOOL removeAudio = options[@"removeAudio"] ? [options[@"minimumBitrate"] boolValue] : NO;
-	
-	// encode
-	SDAVAssetExportSession *encoder = [SDAVAssetExportSession.alloc initWithAsset:urlAsset];
-	encoder.outputFileType = AVFileTypeMPEG4;
-	encoder.outputURL = [NSURL fileURLWithPath:filePath];
-	encoder.videoSettings = @
+	// get video track
+	AVAssetTrack *videoTrack = [[asset tracksWithMediaType:AVMediaTypeVideo] firstObject];
+	if (videoTrack)
 	{
-	AVVideoCodecKey: AVVideoCodecH264,
-	AVVideoWidthKey: width,
-	AVVideoHeightKey: height,
-	AVVideoCompressionPropertiesKey: @
+		// parse options
+		NSNumber *width = options[@"width"] ? @([options[@"width"] intValue]) : @480;
+		NSNumber *height = options[@"height"] ? @([options[@"height"] intValue]) : @848;
+		NSNumber *minimumBitrate = options[@"minimumBitrate"] ? @([options[@"minimumBitrate"] intValue]) : @300000;
+		NSNumber *bitrateMultiplier = options[@"bitrateMultiplier"] ? @([options[@"bitrateMultiplier"] intValue]) : @300000;
+		BOOL removeAudio = options[@"removeAudio"] ? [options[@"minimumBitrate"] boolValue] : NO;
+		
+		// calculate average bitrate
+		CGFloat bps = videoTrack.estimatedDataRate;
+		CGFloat averageBitrate = bps / [bitrateMultiplier floatValue];
+		if (minimumBitrate) {
+			if (averageBitrate < [minimumBitrate floatValue]) {
+				averageBitrate = [minimumBitrate floatValue];
+			}
+			if (bps < [minimumBitrate floatValue]) {
+				averageBitrate = bps;
+			}
+		}
+		
+		// encode
+		SDAVAssetExportSession *encoder = [SDAVAssetExportSession.alloc initWithAsset:asset];
+		encoder.outputFileType = AVFileTypeMPEG4;
+		encoder.outputURL = [NSURL fileURLWithPath:filePath];
+		encoder.videoSettings = @
 		{
-		AVVideoAverageBitRateKey: minimumBitrate,
-		AVVideoProfileLevelKey: AVVideoProfileLevelH264HighAutoLevel,
-		},
-	};
-	
-	if (!removeAudio) {
-		encoder.audioSettings = @
-		{
-		AVFormatIDKey: @(kAudioFormatMPEG4AAC),
-		AVNumberOfChannelsKey: @2,
-		AVSampleRateKey: @44100,
-		AVEncoderBitRateKey: @128000,
+		AVVideoCodecKey: AVVideoCodecH264,
+		AVVideoWidthKey: width,
+		AVVideoHeightKey: height,
+		AVVideoCompressionPropertiesKey: @
+			{
+			AVVideoAverageBitRateKey: @(averageBitrate),
+			AVVideoProfileLevelKey: AVVideoProfileLevelH264HighAutoLevel,
+			},
 		};
+		
+		if (!removeAudio) {
+			encoder.audioSettings = @
+			{
+			AVFormatIDKey: @(kAudioFormatMPEG4AAC),
+			AVNumberOfChannelsKey: @2,
+			AVSampleRateKey: @44100,
+			AVEncoderBitRateKey: @128000,
+			};
+		}
+		
+		[encoder exportAsynchronouslyWithCompletionHandler:^
+		 {
+			 if (encoder.status == AVAssetExportSessionStatusCompleted)
+			 {
+				 NSLog(@"Video export succeeded");
+				 if(resolve) {
+					 resolve(filePath);
+				 }
+			 }
+			 else if (encoder.status == AVAssetExportSessionStatusCancelled)
+			 {
+				 NSLog(@"Video export cancelled");
+				 if (reject) {
+					 reject(0, @"Video export cancelled", nil);
+				 }
+			 }
+			 else
+			 {
+				 NSString *errorString = [NSString stringWithFormat:@"%@ %@, %ld", @"Video export failed with error: %@ (%ld)", encoder.error.localizedDescription, (long)encoder.error.code];
+				 NSLog(@"%@", errorString);
+				 if (reject) {
+					 reject(0, errorString, nil);
+				 }
+			 }
+		 }];
+	} else {
+		if (reject) {
+			NSString *errorString = [NSString stringWithFormat:@"No video track found at path %@", filePath];
+			reject(0, errorString, nil);
+		}
 	}
-	
-	[encoder exportAsynchronouslyWithCompletionHandler:^
-	{
-		if (encoder.status == AVAssetExportSessionStatusCompleted)
-		{
-			NSLog(@"Video export succeeded");
-			if(resolve) {
-				resolve(filePath);
-			}
-		}
-		else if (encoder.status == AVAssetExportSessionStatusCancelled)
-		{
-			NSLog(@"Video export cancelled");
-			if (reject) {
-				reject(0, @"Video export cancelled", nil);
-			}
-		}
-		else
-		{
-			NSString *errorString = [NSString stringWithFormat:@"%@ %@, %ld", @"Video export failed with error: %@ (%ld)", encoder.error.localizedDescription, (long)encoder.error.code];
-			NSLog(@"%@", errorString);
-			if (reject) {
-				reject(0, errorString, nil);
-			}
-		}
-	}];
 }
 
 RCT_EXPORT_METHOD(getAssetInfo:(NSString *)url resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
@@ -127,9 +150,9 @@ RCT_EXPORT_METHOD(getAssetInfo:(NSString *)url resolve:(RCTPromiseResolveBlock)r
 		CGAffineTransform t = videoTrack.preferredTransform;
 		BOOL isPortrait = t.a == 0 && fabs(t.b) == 1 && t.d == 0;
 		NSDictionary *sizeInfo = @{
-															 @"width": isPortrait ? @(naturalSize.height) : @(naturalSize.width),
-															 @"height": isPortrait ? @(naturalSize.width) : @(naturalSize.height)
-															 };
+								   @"width": isPortrait ? @(naturalSize.height) : @(naturalSize.width),
+								   @"height": isPortrait ? @(naturalSize.width) : @(naturalSize.height)
+								   };
 		assetInfo[@"size"] = sizeInfo;
 		
 		// framerate
