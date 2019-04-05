@@ -37,7 +37,7 @@ RCT_EXPORT_MODULE();
 
 #pragma mark - compress
 
-RCT_EXPORT_METHOD(compress:(NSString *)url options:(NSDictionary*)options resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(compress:(NSString *)url options:(NSDictionary*)options callback:(RCTResponseSenderBlock)callback)
 {
 	// create temporary directory to store file
 	NSString *fileName = [NSString stringWithFormat:@"%@-compressed-video.mp4", [self randomStringWithLength:20]];
@@ -101,35 +101,35 @@ RCT_EXPORT_METHOD(compress:(NSString *)url options:(NSDictionary*)options resolv
 			 if (encoder.status == AVAssetExportSessionStatusCompleted)
 			 {
 				 NSLog(@"Video export succeeded");
-				 if(resolve) {
-					 resolve(filePath);
+				 if (callback) {
+					 callback(@[[NSNull null], filePath]);
 				 }
 			 }
 			 else if (encoder.status == AVAssetExportSessionStatusCancelled)
 			 {
 				 NSLog(@"Video export cancelled");
-				 if (reject) {
-					 reject(0, @"Video export cancelled", nil);
+				 if (callback) {
+					 callback(@[@"Video export cancelled", [NSNull null]]);
 				 }
 			 }
 			 else
 			 {
 				 NSString *errorString = [NSString stringWithFormat:@"%@ %@, %ld", @"Video export failed with error: %@ (%ld)", encoder.error.localizedDescription, (long)encoder.error.code];
 				 NSLog(@"%@", errorString);
-				 if (reject) {
-					 reject(0, errorString, nil);
+				 if (callback) {
+					 callback(@[errorString, [NSNull null]]);
 				 }
 			 }
 		 }];
 	} else {
-		if (reject) {
+		if (callback) {
 			NSString *errorString = [NSString stringWithFormat:@"No video track found at path %@", filePath];
-			reject(0, errorString, nil);
+			callback(@[errorString, [NSNull null]]);
 		}
 	}
 }
 
-RCT_EXPORT_METHOD(getAssetInfo:(NSString *)url resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXPORT_METHOD(getAssetInfo:(NSString *)url callback:(RCTResponseSenderBlock)callback)
 {
 	// load asset
 	NSURL *assetURL = [NSURL fileURLWithPath:url];
@@ -159,13 +159,13 @@ RCT_EXPORT_METHOD(getAssetInfo:(NSString *)url resolve:(RCTPromiseResolveBlock)r
 		assetInfo[@"frameRate"] = @(round(videoTrack.nominalFrameRate));
 		assetInfo[@"bitrate"] = @(round(videoTrack.estimatedDataRate));
 		
-		if(resolve) {
-			resolve(assetInfo);
+		if (callback) {
+			callback(@[[NSNull null], assetInfo]);
 		}
 	} else {
-		if (reject) {
+		if (callback) {
 			NSString *error = [NSString stringWithFormat:@"No video found for url %@", url];
-			reject(0, error, nil);
+			callback(@[error, [NSNull null]]);
 		}
 	}
 }
