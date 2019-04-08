@@ -40,7 +40,7 @@ RCT_EXPORT_MODULE();
 RCT_EXPORT_METHOD(compress:(NSString *)url options:(NSDictionary*)options callback:(RCTResponseSenderBlock)callback)
 {
 	// create temporary directory to store file
-	NSString *fileName = [NSString stringWithFormat:@"%@-compressed-video.mp4", [self randomStringWithLength:20]];
+	NSString *fileName = [NSString stringWithFormat:@"%@-%@-compressed.mp4", [self timestamp], [self randomStringWithLength:10]];
 	NSString *filePath = [self documentsPathForFileName:fileName];
 	
 	// fetch asset
@@ -172,6 +172,13 @@ RCT_EXPORT_METHOD(getAssetInfo:(NSString *)url callback:(RCTResponseSenderBlock)
 	}
 }
 
+- (NSString*)timestamp
+{
+	NSDateFormatter *df = [[NSDateFormatter alloc] init];
+	[df setDateFormat:@"yyyy-MM-dd"];
+	NSDate *now = [NSDate new];
+	return [df stringFromDate:now];
+}
 
 - (NSString *)randomStringWithLength:(int)length
 {
@@ -184,10 +191,13 @@ RCT_EXPORT_METHOD(getAssetInfo:(NSString *)url callback:(RCTResponseSenderBlock)
 
 - (NSString *)documentsPathForFileName:(NSString *)name
 {
-	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask, YES);
-	NSString *documentsPath = [paths objectAtIndex:0];
+	// app documents folder
+	//	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask, YES);
+	//	NSString *documentsPath = [paths objectAtIndex:0];
+	//	return [documentsPath stringByAppendingPathComponent:name];
 	
-	return [documentsPath stringByAppendingPathComponent:name];
+	// temp directory
+	return [NSTemporaryDirectory() stringByAppendingPathComponent:name];
 }
 
 - (BOOL)deleteWithFilePath:(NSString*)filePath
