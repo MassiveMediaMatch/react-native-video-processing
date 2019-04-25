@@ -61,15 +61,25 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void getPreviewImages(String path, Promise promise) {
     Log.d(REACT_PACKAGE, "getPreviewImages: " + path);
-    String originalFilepath = getOriginalFilepath(path, false);
-    Trimmer.getPreviewImages(originalFilepath, promise, reactContext);
+    try {
+      String originalFilepath = getOriginalFilepath(path, false);
+      Trimmer.getPreviewImages(originalFilepath, promise, reactContext);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      promise.reject(ex);
+    }
   }
 
   @ReactMethod
   public void getVideoInfo(String path, Promise promise) {
     Log.d(REACT_PACKAGE, "getVideoInfo: " + path);
-    String originalFilepath = getOriginalFilepath(path, false);
-    Trimmer.getVideoInfo(originalFilepath, promise, reactContext);
+    try {
+      String originalFilepath = getOriginalFilepath(path, false);
+      Trimmer.getVideoInfo(originalFilepath, promise, reactContext);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      promise.reject(ex);
+    }
   }
 
   @ReactMethod
@@ -81,8 +91,13 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void compress(String path, ReadableMap options, Promise promise) {
     Log.d(REACT_PACKAGE, "compress video: " + options.toString());
-    String originalFilepath = getOriginalFilepath(path, false);
-    Trimmer.compress(originalFilepath, options, promise, null, null, reactContext);
+    try {
+      String originalFilepath = getOriginalFilepath(path, false);
+      Trimmer.compress(originalFilepath, options, promise, null, null, reactContext);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      promise.reject(ex);
+    }
   }
 
   @ReactMethod
@@ -95,22 +110,37 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void crop(String path, ReadableMap options, Promise promise) {
-    String originalFilepath = getOriginalFilepath(path, false);
-    Trimmer.crop(originalFilepath, options, promise, reactContext);
+    try {
+      String originalFilepath = getOriginalFilepath(path, false);
+      Trimmer.crop(originalFilepath, options, promise, reactContext);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      promise.reject(ex);
+    }
   }
 
   @ReactMethod
   public void boomerang(String path, Promise promise) {
     Log.d(REACT_PACKAGE, "boomerang video: " + path);
-    String originalFilepath = getOriginalFilepath(path, false);
-    Trimmer.boomerang(originalFilepath, promise, reactContext);
+    try {
+      String originalFilepath = getOriginalFilepath(path, false);
+      Trimmer.boomerang(originalFilepath, promise, reactContext);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      promise.reject(ex);
+    }
   }
 
   @ReactMethod
   public void reverse(String path, Promise promise) {
     Log.d(REACT_PACKAGE, "reverse video: " + path);
-    String originalFilepath = getOriginalFilepath(path, true);
-    Trimmer.reverse(originalFilepath, promise, reactContext);
+    try {
+      String originalFilepath = getOriginalFilepath(path, true);
+      Trimmer.reverse(originalFilepath, promise, reactContext);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      promise.reject(ex);
+    }
   }
 
   @ReactMethod
