@@ -36,6 +36,12 @@ import com.facebook.react.common.MapBuilder;
 
 import java.util.Map;
 
+import java.io.File;
+import android.net.Uri;
+import android.provider.MediaStore;
+import java.io.IOException;
+import android.database.Cursor;
+
 public class TrimmerManager extends ReactContextBaseJavaModule {
   static final String REACT_PACKAGE = "RNTrimmerManager";
 
@@ -55,13 +61,25 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void getPreviewImages(String path, Promise promise) {
     Log.d(REACT_PACKAGE, "getPreviewImages: " + path);
-    Trimmer.getPreviewImages(path, promise, reactContext);
+    try {
+      String originalFilepath = getOriginalFilepath(path, false);
+      Trimmer.getPreviewImages(originalFilepath, promise, reactContext);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      promise.reject(ex);
+    }
   }
 
   @ReactMethod
   public void getVideoInfo(String path, Promise promise) {
     Log.d(REACT_PACKAGE, "getVideoInfo: " + path);
-    Trimmer.getVideoInfo(path, promise, reactContext);
+    try {
+      String originalFilepath = getOriginalFilepath(path, false);
+      Trimmer.getVideoInfo(originalFilepath, promise, reactContext);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      promise.reject(ex);
+    }
   }
 
   @ReactMethod
@@ -73,7 +91,13 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void compress(String path, ReadableMap options, Promise promise) {
     Log.d(REACT_PACKAGE, "compress video: " + options.toString());
-    Trimmer.compress(path, options, promise, null, null, reactContext);
+    try {
+      String originalFilepath = getOriginalFilepath(path, false);
+      Trimmer.compress(originalFilepath, options, promise, null, null, reactContext);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      promise.reject(ex);
+    }
   }
 
   @ReactMethod
@@ -86,19 +110,37 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void crop(String path, ReadableMap options, Promise promise) {
-    Trimmer.crop(path, options, promise, reactContext);
+    try {
+      String originalFilepath = getOriginalFilepath(path, false);
+      Trimmer.crop(originalFilepath, options, promise, reactContext);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      promise.reject(ex);
+    }
   }
 
   @ReactMethod
   public void boomerang(String path, Promise promise) {
     Log.d(REACT_PACKAGE, "boomerang video: " + path);
-    Trimmer.boomerang(path, promise, reactContext);
+    try {
+      String originalFilepath = getOriginalFilepath(path, false);
+      Trimmer.boomerang(originalFilepath, promise, reactContext);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      promise.reject(ex);
+    }
   }
 
   @ReactMethod
   public void reverse(String path, Promise promise) {
     Log.d(REACT_PACKAGE, "reverse video: " + path);
-    Trimmer.reverse(path, promise, reactContext);
+    try {
+      String originalFilepath = getOriginalFilepath(path, true);
+      Trimmer.reverse(originalFilepath, promise, reactContext);
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      promise.reject(ex);
+    }
   }
 
   @ReactMethod
@@ -110,5 +152,33 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
   @ReactMethod
   private void loadFfmpeg() {
     Trimmer.loadFfmpeg(reactContext);
+  }
+
+  private String getOriginalFilepath(String filepath, boolean isDirectoryAllowed) throws IOException {
+    Uri uri = getFileUri(filepath, isDirectoryAllowed);
+    String originalFilepath = filepath;
+    if (uri.getScheme().equals("content")) {
+      try {
+        Cursor cursor = reactContext.getContentResolver().query(uri, null, null, null, null);
+        if (cursor.moveToFirst()) {
+          originalFilepath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+        }
+      } catch (IllegalArgumentException ignored) {
+      }
+    }
+    return originalFilepath;
+  }
+
+  private Uri getFileUri(String filepath, boolean isDirectoryAllowed) throws IOException {
+    Uri uri = Uri.parse(filepath);
+    if (uri.getScheme() == null) {
+      // No prefix, assuming that provided path is absolute path to file
+      File file = new File(filepath);
+      if (!isDirectoryAllowed && file.isDirectory()) {
+        throw new IOException("EISDIR: illegal operation on a directory, read '" + filepath + "'");
+      }
+      uri = Uri.parse("file://" + filepath);
+    }
+    return uri;
   }
 }
