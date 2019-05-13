@@ -50,7 +50,6 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
   public TrimmerManager(ReactApplicationContext reactContext) {
     super(reactContext);
     this.reactContext = reactContext;
-    loadFfmpeg();
   }
 
   @Override
@@ -150,7 +149,7 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  private void loadFfmpeg() {
+  public void loadFfmpeg() {
     Trimmer.loadFfmpeg(reactContext);
   }
 
