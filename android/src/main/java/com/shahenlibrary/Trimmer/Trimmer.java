@@ -820,7 +820,7 @@ public class Trimmer {
   }
 
   public static void loadFfmpeg(ReactApplicationContext ctx) {
-    if (this.ffmpegLoaded) {
+    if (Trimmer.ffmpegLoaded) {
       return;
     }
     LoadFfmpegAsyncTaskParams loadFfmpegAsyncTaskParams = new LoadFfmpegAsyncTaskParams(ctx);
