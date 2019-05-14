@@ -210,36 +210,37 @@ public class Trimmer {
           ffmpegStreamToDataDir.close();
 
           ffmpegInAssets.close();
+
+          String ffmpegInDir = getFfmpegAbsolutePath(ctx);
+
+          // NOTE: 2. MAKE "ffmpeg" EXECUTABLE
+          String[] cmdlineChmod = { "chmod", "700", ffmpegInDir };
+          // TODO: 1. CHECK PERMISSIONS
+          Process pChmod = null;
+          try {
+            pChmod = Runtime.getRuntime().exec(cmdlineChmod);
+          } catch (IOException e) {
+            Log.d(LOG_TAG, "Failed to make ffmpeg executable. Error in execution cmd. " + e.toString());
+            ffmpegLoaded = false;
+            return null;
+          }
+
+          try {
+            pChmod.waitFor();
+          } catch (InterruptedException e) {
+            Log.d(LOG_TAG, "Failed to make ffmpeg executable. Error in wait cmd. " + e.toString());
+            ffmpegLoaded = false;
+            return null;
+          }
+
+          ffmpegLoaded = true;
         }
       } catch (IOException e) {
         Log.d(LOG_TAG, "Failed to copy ffmpeg" + e.toString());
         ffmpegLoaded = false;
         return null;
       }
-
-      String ffmpegInDir = getFfmpegAbsolutePath(ctx);
-
-      // NOTE: 2. MAKE "ffmpeg" EXECUTABLE
-      String[] cmdlineChmod = { "chmod", "700", ffmpegInDir };
-      // TODO: 1. CHECK PERMISSIONS
-      Process pChmod = null;
-      try {
-        pChmod = Runtime.getRuntime().exec(cmdlineChmod);
-      } catch (IOException e) {
-        Log.d(LOG_TAG, "Failed to make ffmpeg executable. Error in execution cmd. " + e.toString());
-        ffmpegLoaded = false;
-        return null;
-      }
-
-      try {
-        pChmod.waitFor();
-      } catch (InterruptedException e) {
-        Log.d(LOG_TAG, "Failed to make ffmpeg executable. Error in wait cmd. " + e.toString());
-        ffmpegLoaded = false;
-        return null;
-      }
-
-      ffmpegLoaded = true;
+      
       return null;
     }
   }
@@ -819,13 +820,12 @@ public class Trimmer {
   }
 
   public static void loadFfmpeg(ReactApplicationContext ctx) {
+    if (this.ffmpegLoaded) {
+      return;
+    }
     LoadFfmpegAsyncTaskParams loadFfmpegAsyncTaskParams = new LoadFfmpegAsyncTaskParams(ctx);
 
     LoadFfmpegAsyncTask loadFfmpegAsyncTask = new LoadFfmpegAsyncTask();
     loadFfmpegAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, loadFfmpegAsyncTaskParams);
-
-    // TODO: EXPOSE TO JS "isFfmpegLoaded" AND "isFfmpegLoading"
-
-    return;
   }
 }
