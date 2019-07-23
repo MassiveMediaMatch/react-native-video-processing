@@ -150,13 +150,15 @@ RCT_EXPORT_METHOD(getAssetInfo:(NSString *)url callback:(RCTResponseSenderBlock)
 		// size
 		CGSize naturalSize = videoTrack.naturalSize;
 		CGAffineTransform t = videoTrack.preferredTransform;
-		BOOL isPortrait = t.a == 0 && fabs(t.b) == 1 && t.d == 0;
+		CGFloat videoAngleInDegree = atan2(t.b, t.a) * 180 / M_PI;
+		BOOL isPortrait = videoAngleInDegree == 90 || videoAngleInDegree == -90;
 		NSDictionary *sizeInfo = @{
 								   @"width": isPortrait ? @(naturalSize.height) : @(naturalSize.width),
 								   @"height": isPortrait ? @(naturalSize.width) : @(naturalSize.height)
 								   };
 		assetInfo[@"size"] = sizeInfo;
-		
+		assetInfo[@"orientation"] = @(round(videoAngleInDegree));
+
 		// framerate
 		assetInfo[@"frameRate"] = @(round(videoTrack.nominalFrameRate));
 		assetInfo[@"bitrate"] = @(round(videoTrack.estimatedDataRate));

@@ -502,12 +502,14 @@ class RNVideoTrimmer: NSObject {
 		if let track = asset.tracks(withMediaType: AVMediaType.video).first {
 			let naturalSize = track.naturalSize
 			let t = track.preferredTransform
-			let isPortrait = t.a == 0 && abs(t.b) == 1 && t.d == 0
+			let videoAngleInDegree = atan2(t.b, t.a) * 180 / M_PI
+			let isPortrait = videoAngleInDegree == 90 || videoAngleInDegree == -90
 			let size = [
 				"width": isPortrait ? naturalSize.height : naturalSize.width,
 				"height": isPortrait ? naturalSize.width : naturalSize.height
 			]
 			assetInfo["size"] = size
+			assetInfo["orientation"] = Int(round(videoAngleInDegree))
 			assetInfo["frameRate"] = Int(round(track.nominalFrameRate))
 			assetInfo["bitrate"] = Int(round(track.estimatedDataRate))
 		}
