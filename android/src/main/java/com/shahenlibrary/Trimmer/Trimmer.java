@@ -476,6 +476,7 @@ public class Trimmer {
     Double minimumBitrate = options.hasKey("minimumBitrate") ? options.getDouble("minimumBitrate") : null;
     Double bitrateMultiplier = options.hasKey("bitrateMultiplier") ? options.getDouble("bitrateMultiplier") : 1.0;
     Boolean removeAudio = options.hasKey("removeAudio") ? options.getBoolean("removeAudio") : false;
+    String preset = options.hasKey("preset") ? options.getString("preset") : "ultrafast";
 
     Double averageBitrate = videoBitrate / bitrateMultiplier;
 
@@ -501,16 +502,16 @@ public class Trimmer {
     cmd.add("-b:v");
     cmd.add(Double.toString(averageBitrate/1000)+"K");
     cmd.add("-bufsize");
-    cmd.add(Double.toString(averageBitrate/2000)+"K");
+    cmd.add(Double.toString(averageBitrate/1000)+"K");
     if ( width != 0 && height != 0 ) {
       cmd.add("-vf");
       cmd.add("scale=" + Integer.toString(width) + ":" + Integer.toString(height));
     }
 
     cmd.add("-preset");
-    cmd.add("ultrafast");
-    cmd.add("-pix_fmt");
-    cmd.add("yuv420p");
+    cmd.add(preset);
+    // cmd.add("-pix_fmt");
+    // cmd.add("yuv420p");
 
     if (removeAudio) {
       cmd.add("-an");
