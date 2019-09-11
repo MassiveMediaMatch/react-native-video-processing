@@ -364,7 +364,10 @@ public class Trimmer {
     String startTime = options.getString("startTime");
     String endTime = options.getString("endTime");
 
-    final File tempFile = createTempFile("mp4", promise, ctx);
+    UUID uuid = UUID.randomUUID();
+    String imageName = uuid.toString() + "-screenshot";
+
+    final File tempFile = createTempFile(imageName, "mp4", promise, ctx);
 
     ArrayList<String> cmd = new ArrayList<String>();
     cmd.add("-y"); // NOTE: OVERWRITE OUTPUT FILE
@@ -473,10 +476,14 @@ public class Trimmer {
       height = sizes.getInt("height");
     }
 
+    UUID uuid = UUID.randomUUID();
+    String imageName = uuid.toString() + "-screenshot";
+
     Double minimumBitrate = options.hasKey("minimumBitrate") ? options.getDouble("minimumBitrate") : null;
     Double bitrateMultiplier = options.hasKey("bitrateMultiplier") ? options.getDouble("bitrateMultiplier") : 1.0;
     Boolean removeAudio = options.hasKey("removeAudio") ? options.getBoolean("removeAudio") : false;
     String preset = options.hasKey("preset") ? options.getString("preset") : "ultrafast";
+    String fileName = options.hasKey("fileName") ? options.getString("fileName") : imageName;
 
     Double averageBitrate = videoBitrate / bitrateMultiplier;
 
@@ -491,7 +498,7 @@ public class Trimmer {
 
     Log.d(LOG_TAG, "getVideoRequiredMetadata: averageBitrate - " + Double.toString(averageBitrate));
 
-    final File tempFile = createTempFile("mp4", promise, ctx);
+    final File tempFile = createTempFile(fileName, "mp4", promise, ctx);
 
     ArrayList<String> cmd = new ArrayList<String>();
     cmd.add("-y");
@@ -521,10 +528,7 @@ public class Trimmer {
     executeFfmpegCommand(cmd, tempFile.getPath(), ctx, promise, "compress error", cb);
   }
 
-  static File createTempFile(String extension, final Promise promise, Context ctx) {
-    UUID uuid = UUID.randomUUID();
-    String imageName = uuid.toString() + "-screenshot";
-
+  static File createTempFile(String imageName, String extension, final Promise promise, Context ctx) {
     File cacheDir = ctx.getCacheDir();
     File tempFile = null;
     try {
@@ -581,7 +585,10 @@ public class Trimmer {
       bmp.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
       byte[] byteArray = byteArrayOutputStream.toByteArray();
 
-      File tempFile = createTempFile("jpeg", promise, ctx);
+      UUID uuid = UUID.randomUUID();
+      String imageName = uuid.toString() + "-screenshot";
+
+      File tempFile = createTempFile(imageName, "jpeg", promise, ctx);
 
       try {
         FileOutputStream fos = new FileOutputStream( tempFile.getPath() );
@@ -637,7 +644,10 @@ public class Trimmer {
     // 2) CHECK IT HERE
     // 3) EXPORT THAT METHOD TO "JS"
 
-    final File tempFile = createTempFile("mp4", promise, ctx);
+    UUID uuid = UUID.randomUUID();
+    String imageName = uuid.toString() + "-screenshot";
+
+    final File tempFile = createTempFile(imageName, "mp4", promise, ctx);
 
     ArrayList<String> cmd = new ArrayList<String>();
     cmd.add("-y"); // NOTE: OVERWRITE OUTPUT FILE
@@ -682,8 +692,10 @@ public class Trimmer {
   }
 
   static void boomerang(String source, final Promise promise, ReactApplicationContext ctx) {
+    UUID uuid = UUID.randomUUID();
+    String imageName = uuid.toString() + "-screenshot";
 
-    final File tempFile = createTempFile("mp4", promise, ctx);
+    final File tempFile = createTempFile(imageName, "mp4", promise, ctx);
 
     ArrayList<String> cmd = new ArrayList<String>();
     cmd.add("-y"); // NOTE: OVERWRITE OUTPUT FILE
@@ -714,8 +726,10 @@ public class Trimmer {
   }
 
   static void reverse(String source, final Promise promise, ReactApplicationContext ctx) {
+    UUID uuid = UUID.randomUUID();
+    String imageName = uuid.toString() + "-screenshot";
 
-    final File tempFile = createTempFile("mp4", promise, ctx);
+    final File tempFile = createTempFile(imageName, "mp4", promise, ctx);
 
     ArrayList<String> cmd = new ArrayList<String>();
     cmd.add("-y"); // NOTE: OVERWRITE OUTPUT FILE
@@ -743,7 +757,10 @@ public class Trimmer {
   }
 
   static void merge(ReadableArray videoFiles, String concatCmd, final Promise promise, ReactApplicationContext ctx) {
-    final File tempFile = createTempFile("mp4", promise, ctx);
+    UUID uuid = UUID.randomUUID();
+    String imageName = uuid.toString() + "-screenshot";
+
+    final File tempFile = createTempFile(imageName, "mp4", promise, ctx);
 
     Log.d(LOG_TAG, "Merging in progress.");
 
