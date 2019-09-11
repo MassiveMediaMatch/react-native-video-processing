@@ -40,7 +40,8 @@ RCT_EXPORT_MODULE();
 RCT_EXPORT_METHOD(compress:(NSString *)url options:(NSDictionary*)options callback:(RCTResponseSenderBlock)callback)
 {
 	// create temporary directory to store file
-	NSString *fileName = [NSString stringWithFormat:@"%@-%@-compressed.mp4", [self timestamp], [self randomStringWithLength:10]];
+	NSString *fallbackFileName = [NSString stringWithFormat:@"%@-%@-compressed.mp4", [self timestamp], [self randomStringWithLength:10]];
+    NSString *fileName = options[@"fileName"] ? options[@"fileName"] : fallbackFileName;
 	NSString *filePath = [self documentsPathForFileName:fileName];
 	
 	// fetch asset
