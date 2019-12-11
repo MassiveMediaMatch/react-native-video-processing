@@ -76,7 +76,7 @@ public class Trimmer {
 
   private static final String LOG_TAG = "RNTrimmerManager";
   private static final String FFMPEG_FILE_NAME = "ffmpeg";
-  private static final String FFMPEG_SHA1 = "77ae380db4bf56d011eca9ef9f20d397c0467aec";
+  private static final String FFMPEG_SHA1 = "5dac774f0529a5a1ba3b2eb8cd2debe947500013";
 
   private static boolean ffmpegLoaded = false;
   private static final int DEFAULT_BUFFER_SIZE = 4096;
