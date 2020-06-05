@@ -149,35 +149,5 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void loadFfmpeg() {
-    Trimmer.loadFfmpeg(reactContext);
-  }
-
-  private String getOriginalFilepath(String filepath, boolean isDirectoryAllowed) throws IOException {
-    Uri uri = getFileUri(filepath, isDirectoryAllowed);
-    String originalFilepath = filepath;
-    if (uri.getScheme().equals("content")) {
-      try {
-        Cursor cursor = reactContext.getContentResolver().query(uri, null, null, null, null);
-        if (cursor.moveToFirst()) {
-          originalFilepath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
-        }
-      } catch (IllegalArgumentException ignored) {
-      }
-    }
-    return originalFilepath;
-  }
-
-  private Uri getFileUri(String filepath, boolean isDirectoryAllowed) throws IOException {
-    Uri uri = Uri.parse(filepath);
-    if (uri.getScheme() == null) {
-      // No prefix, assuming that provided path is absolute path to file
-      File file = new File(filepath);
-      if (!isDirectoryAllowed && file.isDirectory()) {
-        throw new IOException("EISDIR: illegal operation on a directory, read '" + filepath + "'");
-      }
-      uri = Uri.parse("file://" + filepath);
-    }
-    return uri;
-  }
+  private void loadFfmpeg() {}
 }
