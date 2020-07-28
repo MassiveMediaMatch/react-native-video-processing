@@ -64,8 +64,8 @@ import java.io.InputStream;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import android.os.AsyncTask;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.MessageDigest;
@@ -75,10 +75,8 @@ import java.util.Formatter;
 public class Trimmer {
 
   private static final String LOG_TAG = "RNTrimmerManager";
-  private static final String FFMPEG_FILE_NAME = "ffmpeg";
-  private static final String FFMPEG_SHA1 = "5dac774f0529a5a1ba3b2eb8cd2debe947500013";
+  private static final String FFMPEG_FILE_NAME = "libffmpeg.so";
 
-  private static boolean ffmpegLoaded = false;
   private static final int DEFAULT_BUFFER_SIZE = 4096;
   private static final int END_OF_FILE = -1;
 
@@ -174,78 +172,7 @@ public class Trimmer {
     }
 
   }
-
-
-  private static class LoadFfmpegAsyncTaskParams {
-    Context ctx;
-
-    LoadFfmpegAsyncTaskParams(Context ctx) {
-      this.ctx = ctx;
-    }
-  }
-
-  private static class LoadFfmpegAsyncTask extends AsyncTask<LoadFfmpegAsyncTaskParams, Void, Void> {
-
-    @Override
-    protected Void doInBackground(LoadFfmpegAsyncTaskParams... params) {
-      Context ctx = params[0].ctx;
-
-      // NOTE: 1. COPY "ffmpeg" FROM ASSETS TO /data/data/com.myapp...
-      String filesDir = getFilesDirAbsolutePath(ctx);
-
-      // TODO: MAKE SURE THAT WHEN WE UPDATE FFMPEG AND USER UPDATES APP IT WILL LOAD NEW FFMPEG (IT MUST OVERWRITE OLD FFMPEG)
-      try {
-        File ffmpegFile = new File(filesDir, FFMPEG_FILE_NAME);
-        if ( !(ffmpegFile.exists() && getSha1FromFile(ffmpegFile).equalsIgnoreCase(FFMPEG_SHA1)) ) {
-          final FileOutputStream ffmpegStreamToDataDir = new FileOutputStream(ffmpegFile);
-          byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-
-          int n;
-          InputStream ffmpegInAssets = ctx.getAssets().open("armeabi-v7a" + File.separator + FFMPEG_FILE_NAME);
-          while(END_OF_FILE != (n = ffmpegInAssets.read(buffer))) {
-            ffmpegStreamToDataDir.write(buffer, 0, n);
-          }
-
-          ffmpegStreamToDataDir.flush();
-          ffmpegStreamToDataDir.close();
-
-          ffmpegInAssets.close();
-
-          String ffmpegInDir = getFfmpegAbsolutePath(ctx);
-
-          // NOTE: 2. MAKE "ffmpeg" EXECUTABLE
-          String[] cmdlineChmod = { "chmod", "700", ffmpegInDir };
-          // TODO: 1. CHECK PERMISSIONS
-          Process pChmod = null;
-          try {
-            pChmod = Runtime.getRuntime().exec(cmdlineChmod);
-          } catch (IOException e) {
-            Log.d(LOG_TAG, "Failed to make ffmpeg executable. Error in execution cmd. " + e.toString());
-            ffmpegLoaded = false;
-            return null;
-          }
-
-          try {
-            pChmod.waitFor();
-          } catch (InterruptedException e) {
-            Log.d(LOG_TAG, "Failed to make ffmpeg executable. Error in wait cmd. " + e.toString());
-            ffmpegLoaded = false;
-            return null;
-          }
-
-          ffmpegLoaded = true;
-        }
-      } catch (IOException e) {
-        Log.d(LOG_TAG, "Failed to copy ffmpeg" + e.toString());
-        ffmpegLoaded = false;
-        return null;
-      }
-      
-      return null;
-    }
-  }
-
-
+  
   public static void getPreviewImages(String path, Promise promise, ReactApplicationContext ctx) {
     FFmpegMediaMetadataRetriever retriever = new FFmpegMediaMetadataRetriever();
     try {
@@ -391,11 +318,13 @@ public class Trimmer {
     cmd.add("-preset");
     cmd.add("ultrafast");
     // NOTE: DO NOT CONVERT AUDIO TO SAVE TIME
+    cmd.add("-c:v");
+    cmd.add("copy");
     cmd.add("-c:a");
     cmd.add("copy");
     // NOTE: FLAG TO CONVER "AAC" AUDIO CODEC
-    cmd.add("-strict");
-    cmd.add("-2");
+    // cmd.add("-strict");
+    // cmd.add("-2");
     // NOTE: OUTPUT FILE
     cmd.add(tempFile.getPath());
 
@@ -612,6 +541,64 @@ public class Trimmer {
     promise.resolve(event);
   }
 
+  static void getTrimmerPreviewImages(String source, double startTime, double endTime, int step, String format, final Promise promise, ReactApplicationContext ctx) {
+    FFmpegMediaMetadataRetriever retriever = new FFmpegMediaMetadataRetriever();
+    try {
+      FFmpegMediaMetadataRetriever.IN_PREFERRED_CONFIG = Bitmap.Config.ARGB_8888;
+      retriever.setDataSource(source);
+
+      WritableArray images = Arguments.createArray();
+      int duration = Integer.parseInt(retriever.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_DURATION));
+      int width = Integer.parseInt(retriever.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
+      int height = Integer.parseInt(retriever.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
+      int orientation = Integer.parseInt(retriever.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION));
+
+      float aspectRatio = (float)width / (float)height;
+
+      int resizeHeight = 100;
+      int resizeWidth = Math.round(resizeHeight * aspectRatio);
+
+      float scaleWidth = ((float) resizeWidth) / width;
+      float scaleHeight = ((float) resizeHeight) / height;
+
+      Log.d(TrimmerManager.REACT_PACKAGE, "getPreviewImages: \n\tduration: " + duration +
+              "\n\twidth: " + width +
+              "\n\theight: " + height +
+              "\n\torientation: " + orientation +
+              "\n\taspectRatio: " + aspectRatio +
+              "\n\tresizeWidth: " + resizeWidth +
+              "\n\tresizeHeight: " + resizeHeight
+      );
+
+      Matrix mx = new Matrix();
+
+      mx.postScale(scaleWidth, scaleHeight);
+      mx.postRotate(orientation - 360);
+
+      for (int i = (int) startTime; i < (int) endTime; i += step ) {
+        Bitmap frame = retriever.getScaledFrameAtTime((long) i * 1000000, resizeWidth, resizeHeight);
+
+        if (frame == null) {
+          continue;
+        }
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        frame.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+        String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
+        images.pushString(encoded);
+      }
+
+
+      WritableMap event = Arguments.createMap();
+
+      event.putArray("images", images);
+
+      promise.resolve(event);
+    } finally {
+      retriever.release();
+    }
+  }
+
   private static BufferedReader getOutputFromProcess(Process p) {
     return new BufferedReader(new InputStreamReader(p.getInputStream()));
   }
@@ -799,12 +786,9 @@ public class Trimmer {
     return null;
   }
 
-  private static String getFilesDirAbsolutePath(Context ctx) {
-    return ctx.getFilesDir().getAbsolutePath();
-  }
-
   private static String getFfmpegAbsolutePath(Context ctx) {
-    return getFilesDirAbsolutePath(ctx) + File.separator + FFMPEG_FILE_NAME;
+    File folder = new File(ctx.getApplicationInfo().nativeLibraryDir);
+    return new File(folder, FFMPEG_FILE_NAME).getAbsolutePath();
   }
 
   public static String getSha1FromFile(final File file) {
@@ -835,15 +819,5 @@ public class Trimmer {
       }
       return f.toString();
     }
-  }
-
-  public static void loadFfmpeg(ReactApplicationContext ctx) {
-    if (Trimmer.ffmpegLoaded) {
-      return;
-    }
-    LoadFfmpegAsyncTaskParams loadFfmpegAsyncTaskParams = new LoadFfmpegAsyncTaskParams(ctx);
-
-    LoadFfmpegAsyncTask loadFfmpegAsyncTask = new LoadFfmpegAsyncTask();
-    loadFfmpegAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, loadFfmpegAsyncTaskParams);
   }
 }

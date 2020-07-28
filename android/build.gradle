@@ -1,16 +1,20 @@
 apply plugin: 'com.android.library'
 
+def safeExtGet(prop, fallback) {
+    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+}
+
 android {
-  compileSdkVersion 25
-  buildToolsVersion "25.0.3"
+  compileSdkVersion safeExtGet('compileSdkVersion', 29)
+  buildToolsVersion safeExtGet('buildToolsVersion', "29.0.3")
 
   defaultConfig {
-    minSdkVersion 16
-    targetSdkVersion 22
+    minSdkVersion safeExtGet('minSdkVersion', 16)
+    targetSdkVersion safeExtGet('targetSdkVersion', 29)
     versionCode 1
     versionName "1.0"
     ndk {
-      abiFilters "armeabi-v7a", "x86"
+      abiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
     }
   }
   lintOptions {
@@ -24,10 +28,11 @@ configurations.all {
 
 
 dependencies {
-  compile 'com.facebook.react:react-native:+'
-  compile 'com.yqritc:android-scalablevideoview:1.0.4'
-  compile 'com.googlecode.mp4parser:isoparser:1.1.20'
-  compile 'com.github.wseemann:FFmpegMediaMetadataRetriever:1.0.14'
+  implementation 'com.facebook.react:react-native:+'
+  implementation 'com.yqritc:android-scalablevideoview:1.0.4'
+  implementation 'com.googlecode.mp4parser:isoparser:1.1.20'
+  implementation 'com.github.wseemann:FFmpegMediaMetadataRetriever:1.0.14'
+  // implementation "com.google.android.gms:play-services-gcm:12.+"
 }
 
 allprojects {

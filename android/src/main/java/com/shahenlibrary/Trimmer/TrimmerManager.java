@@ -23,7 +23,7 @@
  */
 package com.shahenlibrary.Trimmer;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import com.facebook.react.bridge.ReadableArray;
@@ -108,6 +108,16 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void getTrimmerPreviewImages(ReadableMap options, Promise promise) {
+    String source = options.getString("source");
+    double startTime = options.hasKey("startTime") ? options.getDouble("startTime") : 0;
+    double endTime = options.hasKey("endTime") ? options.getDouble("endTime") : 0;
+    int step = options.hasKey("step") ? options.getInt("step") : 0;
+    String format = options.hasKey("format") ? options.getString("format") : null;
+    Trimmer.getTrimmerPreviewImages(source, startTime, endTime, step, format, promise, reactContext);
+  }
+
+  @ReactMethod
   public void crop(String path, ReadableMap options, Promise promise) {
     try {
       String originalFilepath = getOriginalFilepath(path, false);
@@ -146,38 +156,5 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
   public void merge(ReadableArray videoFiles, String cmd, Promise promise) {
     Log.d(REACT_PACKAGE, "Sending command: " + cmd);
     Trimmer.merge(videoFiles, cmd, promise, reactContext);
-  }
-
-  @ReactMethod
-  public void loadFfmpeg() {
-    Trimmer.loadFfmpeg(reactContext);
-  }
-
-  private String getOriginalFilepath(String filepath, boolean isDirectoryAllowed) throws IOException {
-    Uri uri = getFileUri(filepath, isDirectoryAllowed);
-    String originalFilepath = filepath;
-    if (uri.getScheme().equals("content")) {
-      try {
-        Cursor cursor = reactContext.getContentResolver().query(uri, null, null, null, null);
-        if (cursor.moveToFirst()) {
-          originalFilepath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
-        }
-      } catch (IllegalArgumentException ignored) {
-      }
-    }
-    return originalFilepath;
-  }
-
-  private Uri getFileUri(String filepath, boolean isDirectoryAllowed) throws IOException {
-    Uri uri = Uri.parse(filepath);
-    if (uri.getScheme() == null) {
-      // No prefix, assuming that provided path is absolute path to file
-      File file = new File(filepath);
-      if (!isDirectoryAllowed && file.isDirectory()) {
-        throw new IOException("EISDIR: illegal operation on a directory, read '" + filepath + "'");
-      }
-      uri = Uri.parse("file://" + filepath);
-    }
-    return uri;
   }
 }
