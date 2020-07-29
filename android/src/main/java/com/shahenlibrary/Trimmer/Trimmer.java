@@ -281,6 +281,8 @@ public class Trimmer {
       }
 
       promise.resolve(event);
+    } catch (Exception e) {
+      promise.reject(e);
     } finally {
       mmr.release();
     }
