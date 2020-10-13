@@ -134,6 +134,12 @@ RCT_EXPORT_METHOD(compress:(NSString *)url options:(NSDictionary*)options callba
 
 RCT_EXPORT_METHOD(getAssetInfo:(NSString *)url callback:(RCTResponseSenderBlock)callback)
 {
+	// remove 'file://' prefix
+	if ([url rangeOfString:@"file://"].location != NSNotFound) {
+		NSRange r = [url rangeOfString:@"file://"];
+		url = [url stringByReplacingCharactersInRange:r withString:@""];
+	}
+	
 	// load asset
 	NSURL *assetURL = [NSURL fileURLWithPath:url];
 	AVURLAsset *asset = [AVURLAsset assetWithURL:assetURL];
