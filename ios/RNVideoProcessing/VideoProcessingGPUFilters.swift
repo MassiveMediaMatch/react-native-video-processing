@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import GPUImage
+//import GPUImage
 
 class VideoProcessingGPUFilters {
   let filters = [
