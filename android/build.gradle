@@ -31,7 +31,7 @@ dependencies {
   implementation 'com.facebook.react:react-native:+'
   implementation 'com.yqritc:android-scalablevideoview:1.0.4'
   implementation 'com.googlecode.mp4parser:isoparser:1.1.20'
-  implementation 'com.github.wseemann:FFmpegMediaMetadataRetriever:1.0.15'
+  implementation 'com.github.wseemann:FFmpegMediaMetadataRetriever:1.0.14'
   // implementation "com.google.android.gms:play-services-gcm:12.+"
 }
 
