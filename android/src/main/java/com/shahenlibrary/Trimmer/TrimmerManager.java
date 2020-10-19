@@ -23,7 +23,7 @@
  */
 package com.shahenlibrary.Trimmer;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.util.Log;
 
 import com.facebook.react.bridge.ReadableArray;
@@ -36,12 +36,6 @@ import com.facebook.react.common.MapBuilder;
 
 import java.util.Map;
 
-import java.io.File;
-import android.net.Uri;
-import android.provider.MediaStore;
-import java.io.IOException;
-import android.database.Cursor;
-
 public class TrimmerManager extends ReactContextBaseJavaModule {
   static final String REACT_PACKAGE = "RNTrimmerManager";
 
@@ -50,6 +44,7 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
   public TrimmerManager(ReactApplicationContext reactContext) {
     super(reactContext);
     this.reactContext = reactContext;
+    loadFfmpeg();
   }
 
   @Override
@@ -60,25 +55,13 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void getPreviewImages(String path, Promise promise) {
     Log.d(REACT_PACKAGE, "getPreviewImages: " + path);
-    try {
-      String originalFilepath = getOriginalFilepath(path, false);
-      Trimmer.getPreviewImages(originalFilepath, promise, reactContext);
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      promise.reject(ex);
-    }
+    Trimmer.getPreviewImages(path, promise, reactContext);
   }
 
   @ReactMethod
   public void getVideoInfo(String path, Promise promise) {
     Log.d(REACT_PACKAGE, "getVideoInfo: " + path);
-    try {
-      String originalFilepath = getOriginalFilepath(path, false);
-      Trimmer.getVideoInfo(originalFilepath, promise, reactContext);
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      promise.reject(ex);
-    }
+    Trimmer.getVideoInfo(path, promise, reactContext);
   }
 
   @ReactMethod
@@ -90,13 +73,7 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
   @ReactMethod
   public void compress(String path, ReadableMap options, Promise promise) {
     Log.d(REACT_PACKAGE, "compress video: " + options.toString());
-    try {
-      String originalFilepath = getOriginalFilepath(path, false);
-      Trimmer.compress(originalFilepath, options, promise, null, null, reactContext);
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      promise.reject(ex);
-    }
+    Trimmer.compress(path, options, promise, null, null, reactContext);
   }
 
   @ReactMethod
@@ -108,38 +85,30 @@ public class TrimmerManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void getTrimmerPreviewImages(ReadableMap options, Promise promise) {
+    String source = options.getString("source");
+    double startTime = options.hasKey("startTime") ? options.getDouble("startTime") : 0;
+    double endTime = options.hasKey("endTime") ? options.getDouble("endTime") : 0;
+    int step = options.hasKey("step") ? options.getInt("step") : 0;
+    String format = options.hasKey("format") ? options.getString("format") : null;
+    Trimmer.getTrimmerPreviewImages(source, startTime, endTime, step, format, promise, reactContext);
+  }
+
+  @ReactMethod
   public void crop(String path, ReadableMap options, Promise promise) {
-    try {
-      String originalFilepath = getOriginalFilepath(path, false);
-      Trimmer.crop(originalFilepath, options, promise, reactContext);
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      promise.reject(ex);
-    }
+    Trimmer.crop(path, options, promise, reactContext);
   }
 
   @ReactMethod
   public void boomerang(String path, Promise promise) {
     Log.d(REACT_PACKAGE, "boomerang video: " + path);
-    try {
-      String originalFilepath = getOriginalFilepath(path, false);
-      Trimmer.boomerang(originalFilepath, promise, reactContext);
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      promise.reject(ex);
-    }
+    Trimmer.boomerang(path, promise, reactContext);
   }
 
   @ReactMethod
   public void reverse(String path, Promise promise) {
     Log.d(REACT_PACKAGE, "reverse video: " + path);
-    try {
-      String originalFilepath = getOriginalFilepath(path, true);
-      Trimmer.reverse(originalFilepath, promise, reactContext);
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      promise.reject(ex);
-    }
+    Trimmer.reverse(path, promise, reactContext);
   }
 
   @ReactMethod
