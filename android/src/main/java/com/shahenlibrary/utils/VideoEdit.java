@@ -31,7 +31,6 @@ import android.util.Log;
 import com.coremedia.iso.boxes.Container;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.uimanager.ThemedReactContext;
-import com.googlecode.mp4parser.FileDataSourceViaHeapImpl;
 import com.googlecode.mp4parser.authoring.Movie;
 import com.googlecode.mp4parser.authoring.Track;
 import com.googlecode.mp4parser.authoring.builder.DefaultMp4Builder;
