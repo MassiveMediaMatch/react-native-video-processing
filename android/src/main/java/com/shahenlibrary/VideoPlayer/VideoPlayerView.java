@@ -140,10 +140,8 @@ public class VideoPlayerView extends ScalableVideoView implements
       if (VideoEdit.shouldUseURI(uriString)) {
         Uri parsedUri = Uri.parse(mediaSource);
         setDataSource(themedReactContext, parsedUri);
-        metadataRetriever.setDataSource(themedReactContext, parsedUri);
       } else {
         setDataSource(mediaSource);
-        metadataRetriever.setDataSource(mediaSource);
       }
       prepare(this);
 
@@ -246,9 +244,6 @@ public class VideoPlayerView extends ScalableVideoView implements
     mMediaPlayer.stop();
     mMediaPlayer.release();
     mMediaPlayer = null;
-        /* Cleanup the media retriever */
-    metadataRetriever.release();
-    metadataRetriever = null;
   }
 
   public void setVideoStartAt(int startAt) {
