@@ -53,8 +53,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
-import wseemann.media.FFmpegMediaMetadataRetriever;
-
 public class VideoPlayerView extends ScalableVideoView implements
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer.OnBufferingUpdateListener,
         MediaPlayer.OnCompletionListener, MediaPlayer.OnInfoListener, LifecycleEventListener, MediaController.MediaPlayerControl {
@@ -67,7 +65,6 @@ public class VideoPlayerView extends ScalableVideoView implements
   private String LOG_TAG = "RNVideoProcessing";
   private Runnable progressRunnable = null;
   private Handler progressUpdateHandler = new Handler();
-  private FFmpegMediaMetadataRetriever metadataRetriever = new FFmpegMediaMetadataRetriever();
   private int progressUpdateHandlerDelay = 1000;
   private int videoStartAt = 0;
   private int videoEndAt = -1;
@@ -273,39 +270,10 @@ public class VideoPlayerView extends ScalableVideoView implements
       Log.d(LOG_TAG, "sendMediaInfo: media Player is null");
       return;
     }
-
-    WritableMap event = Arguments.createMap();
-
-    int videoWidth = Integer.parseInt(metadataRetriever.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
-    int videoHeight = Integer.parseInt(metadataRetriever.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
-
-    event.putInt(Events.DURATION, mMediaPlayer.getDuration() / 1000);
-    event.putInt(Events.WIDTH, videoWidth);
-    event.putInt(Events.HEIGHT, videoHeight);
-
-    eventEmitter.receiveEvent(getId(), EventsEnum.EVENT_GET_INFO.toString(), event);
   }
 
   public void getFrame(float sec) {
-    Bitmap bmp = metadataRetriever.getFrameAtTime((long) (sec * 1000000));
-
-    int width = Integer.parseInt(metadataRetriever.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
-    int height = Integer.parseInt(metadataRetriever.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
-    int orientation = Integer.parseInt(metadataRetriever.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION));
-
-    Matrix mx = new Matrix();
-    mx.postRotate(orientation - 360);
-    Bitmap normalizedBmp = Bitmap.createBitmap(bmp, 0, 0, width, height, mx, true);
-
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    normalizedBmp.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-    byte[] byteArray = byteArrayOutputStream .toByteArray();
-    String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
-
-    WritableMap event = Arguments.createMap();
-    event.putString("image", encoded);
-
-    eventEmitter.receiveEvent(getId(), EventsEnum.EVENT_GET_PREVIEW_IMAGE.toString(), event);
+    
   }
 
   public void trimMedia(@Nullable double startMs, double endMs) {

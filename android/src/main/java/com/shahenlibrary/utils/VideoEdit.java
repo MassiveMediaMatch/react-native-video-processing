@@ -50,7 +50,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-import com.shahenlibrary.Trimmer.Trimmer;
 import com.shahenlibrary.interfaces.OnCompressVideoListener;
 import com.shahenlibrary.interfaces.OnTrimVideoListener;
 
@@ -93,7 +92,7 @@ public class VideoEdit {
   }
 
   public static void startCompress(@NonNull String source, @NonNull final OnCompressVideoListener callback, ThemedReactContext ctx, ReadableMap options) throws IOException {
-    Trimmer.compress(source, options, null, callback, ctx, null);
+    
   }
 
   private static void genVideoUsingMp4Parser(@NonNull File src, @NonNull File dst, long startMs, long endMs, @NonNull OnTrimVideoListener callback) throws IOException {
